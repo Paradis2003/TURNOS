@@ -219,7 +219,7 @@ function weekDates(off) {
 function weekData(off) {
   const k = weekKey(off);
   if (!data[k]) data[k] = Array.from({length:7}, (_,i) => ({
-    type: i>=5?'t':'off', startPlan: i>=5?'18:00':'', endPlan: i>=5?'23:00':'', endReal:'', note:''
+    type: 'off', startPlan: '', endPlan: '', endReal:'', note:''
   }));
   return data[k];
 }
@@ -275,14 +275,17 @@ function render() {
     const opts =
       '<option value="m"'+sel('m')+'>☀️ mañana</option>'+
       '<option value="t"'+sel('t')+'>🌤 tarde</option>'+
-      '<option value="n"'+sel('n')+'>🌙 noche</option>'+
       '<option value="off"'+sel('off')+'>💤 libre</option>';
 
     if (d.type==='off') {
       card.innerHTML =
         '<div class="day-name">'+DAYS[i]+'</div>'+
         '<div class="day-date">'+fmtDate(date)+'</div>'+
-        '<select class="type-select" onchange="upd('+i+',\'type\',this.value)">'+opts+'</select>';
+        '<select class="type-select" onchange="upd('+i+',\'type\',this.value)">'+
+        '<option value="m">☀️ mañana</option>'+
+        '<option value="t">🌤 tarde</option>'+
+        '<option value="off" selected>💤 libre</option>'+
+        '</select>';
     } else {
       card.innerHTML =
         '<div class="day-name">'+DAYS[i]+'</div>'+
