@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Turnos Telepizza</title>
+
+<!-- PWA: pantalla completa sin barra del navegador -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mis Turnos">
+<meta name="theme-color" content="#f5f4f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#181816" media="(prefers-color-scheme: dark)">
+
+<!-- Icono para pantalla de inicio (emoji pizza generado como SVG en base64) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjQwIiBmaWxsPSIjZDg1YTMwIi8+PHRleHQgeD0iOTAiIHk9IjEyMiIgZm9udC1zaXplPSI5MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNlcmlmIj7wn42lPC90ZXh0Pjwvc3ZnPg==">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjQwIiBmaWxsPSIjZDg1YTMwIi8+PHRleHQgeD0iOTAiIHk9IjEyMiIgZm9udC1zaXplPSI5MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNlcmlmIj7wn42lPC90ZXh0Pjwvc3ZnPg==">
+
+<!-- Web App Manifest (inline) -->
+<script>
+const manifestData = {
+  name: "Mis Turnos Telepizza",
+  short_name: "Mis Turnos",
+  start_url: "./",
+  display: "standalone",
+  background_color: "#f5f4f0",
+  theme_color: "#d85a30",
+  icons: [{
+    src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjQwIiBmaWxsPSIjZDg1YTMwIi8+PHRleHQgeD0iOTAiIHk9IjEyMiIgZm9udC1zaXplPSI5MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InNlcmlmIj7wn42lPC90ZXh0Pjwvc3ZnPg==",
+    sizes: "180x180", type: "image/svg+xml", purpose: "any maskable"
+  }]
+};
+const blob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+const manifestURL = URL.createObjectURL(blob);
+const link = document.createElement('link');
+link.rel = 'manifest'; link.href = manifestURL;
+document.currentScript.parentNode.appendChild(link);
+</script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f4f0; --surface: #ffffff; --surface2: #f0efe9;
+    --border: rgba(0,0,0,0.10); --border2: rgba(0,0,0,0.18);
+    --text: #1a1a18; --text2: #6b6b67; --text3: #9b9b96;
+    --radius: 10px; --radius-lg: 14px;
+    --green-bg: #eaf3de; --green-txt: #2d5a0a;
+    --red-bg: #fcebeb; --red-txt: #922;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #181816; --surface: #222220; --surface2: #2c2c2a;
+      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.15);
+      --text: #f0efe9; --text2: #9b9b96; --text3: #6b6b67;
+      --green-bg: #173404; --green-txt: #c0dd97;
+      --red-bg: #501313; --red-txt: #f09595;
+    }
+  }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, 'Helvetica Neue', sans-serif;
+    background: var(--bg); color: var(--text);
+    /* respeta el notch y la barra de gestos del móvil */
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .app { max-width: 700px; margin: 0 auto; padding: 1.25rem 1rem 2rem; }
+  .logo { font-size: 18px; font-weight: 700; margin-bottom: 1.25rem; }
+  .logo span { color: #d85a30; }
+
+  .info-box { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 0.9rem 1.1rem; margin-bottom: 1.25rem; }
+  .info-box h3 { font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+  .info-box p { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+  /* Banner "añadir a inicio" — sólo visible si no está instalada */
+  .install-banner { display: none; background: #d85a30; color: #fff; border-radius: var(--radius-lg); padding: 0.8rem 1rem; margin-bottom: 1rem; font-size: 13px; line-height: 1.5; }
+  .install-banner b { display: block; margin-bottom: 2px; font-size: 14px; }
+
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .nav-btn { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 8px 18px; cursor: pointer; font-size: 14px; color: var(--text); transition: background 0.15s; -webkit-tap-highlight-color: transparent; }
+  .nav-btn:active { background: var(--surface2); }
+  .week-title { font-size: 14px; font-weight: 500; text-align: center; }
+
+  .day-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+  @media (max-width: 400px) { .day-grid { grid-template-columns: 1fr; } }
+
+  .day-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 0.9rem 1rem; }
+  .day-card.active { border-color: var(--border2); }
+  .day-name { font-size: 11px; color: var(--text3); margin-bottom: 2px; }
+  .day-date { font-size: 15px; font-weight: 500; margin-bottom: 8px; }
+
+  select, input[type="time"], textarea {
+    width: 100%; font-size: 13px; border: 0.5px solid var(--border); border-radius: var(--radius);
+    padding: 6px 8px; background: var(--surface2); color: var(--text); font-family: inherit;
+    appearance: none; -webkit-appearance: none; outline: none; transition: border-color 0.15s;
+  }
+  select:focus, input:focus, textarea:focus { border-color: var(--border2); }
+  select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23888' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 26px; }
+  .type-select { margin-bottom: 8px; }
+  .divider { height: 0.5px; background: var(--border); margin: 7px 0; }
+  .block-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; font-weight: 500; }
+  .time-row { display: flex; gap: 6px; align-items: flex-end; }
+  .time-col { flex: 1; }
+  .time-col-label { font-size: 10px; color: var(--text3); margin-bottom: 2px; }
+  .diff-badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; margin-bottom: 1px; }
+  .diff-pos { background: var(--green-bg); color: var(--green-txt); }
+  .diff-neg { background: var(--red-bg); color: var(--red-txt); }
+  .diff-zero { background: var(--surface2); color: var(--text2); }
+  .hours-row { display: flex; gap: 6px; margin-top: 7px; margin-bottom: 4px; }
+  .hours-chip { flex: 1; background: var(--surface2); border-radius: var(--radius); padding: 5px 8px; text-align: center; }
+  .chip-label { font-size: 10px; color: var(--text3); }
+  .chip-val { font-size: 14px; font-weight: 500; }
+  .chip-val.pos { color: var(--green-txt); }
+  .chip-val.neg { color: var(--red-txt); }
+  textarea { resize: none; margin-top: 6px; font-size: 12px; color: var(--text2); }
+
+  .total-bar { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 0.9rem 1rem; display: flex; margin-bottom: 14px; }
+  .total-item { flex: 1; text-align: center; }
+  .total-item + .total-item { border-left: 0.5px solid var(--border); }
+  .total-label { font-size: 11px; color: var(--text2); margin-bottom: 3px; }
+  .total-val { font-size: 20px; font-weight: 600; }
+  .total-val.pos { color: var(--green-txt); }
+  .total-val.neg { color: var(--red-txt); }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .btn { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 8px 14px; cursor: pointer; font-size: 13px; color: var(--text); display: inline-flex; align-items: center; gap: 5px; transition: background 0.15s; white-space: nowrap; font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  .btn:active { background: var(--surface2); }
+  .btn.primary { background: #d85a30; color: #fff; border-color: #d85a30; }
+  .btn.primary:active { background: #c04e27; }
+  .saved-msg { font-size: 12px; color: var(--green-txt); opacity: 0; transition: opacity 0.3s; }
+
+  .month-select { font-size: 13px; border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 7px 28px 7px 10px; background: var(--surface2); color: var(--text); cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23888' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; font-family: inherit; }
+  input[type="file"] { display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="logo">🍕 Mis <span>Turnos</span></div>
+
+  <!-- Banner instrucciones instalación — se muestra solo si no está instalada como app -->
+  <div class="install-banner" id="install-banner">
+    <b>📱 Añadir a pantalla de inicio</b>
+    <span id="install-text"></span>
+  </div>
+
+  <div class="info-box">
+    <h3>💾 ¿Dónde se guardan los datos?</h3>
+    <p>Los datos se guardan en este navegador. Si cambias de dispositivo, usa <strong>Exportar copia</strong> (.json) y luego <strong>Importar</strong>. Para el resumen mensual, <strong>Exportar a Excel</strong>.</p>
+  </div>
+
+  <div class="header">
+    <button class="nav-btn" onclick="changeWeek(-1)">← Ant.</button>
+    <div class="week-title" id="week-label"></div>
+    <button class="nav-btn" onclick="changeWeek(1)">Sig. →</button>
+  </div>
+
+  <div class="day-grid" id="day-grid"></div>
+  <div class="total-bar" id="total-bar"></div>
+
+  <div class="actions">
+    <button class="btn" onclick="saveWeek()">💾 Guardar</button>
+    <span class="saved-msg" id="saved-msg">Guardado ✓</span>
+    <div style="flex:1"></div>
+    <button class="btn" onclick="exportJSON()">📤 Exportar copia</button>
+    <button class="btn" onclick="document.getElementById('file-in').click()">📥 Importar</button>
+    <input type="file" id="file-in" accept=".json" onchange="importJSON(event)">
+  </div>
+
+  <div class="actions">
+    <span style="font-size:13px; color:var(--text2);">Mes:</span>
+    <select class="month-select" id="export-month"></select>
+    <button class="btn primary" onclick="exportCSV()">📊 Exportar a Excel</button>
+  </div>
+</div>
+
+<script>
+const DAYS = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+const DAYNAMES_ES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let offset = 0;
+let data = {};
+
+// ── Detectar si ya está instalada como app ───────────────────
+function isInstalled() {
+  return window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
+}
+
+function showInstallBanner() {
+  if (isInstalled()) return;
+  const banner = document.getElementById('install-banner');
+  const txt = document.getElementById('install-text');
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isAndroid = /android/i.test(navigator.userAgent);
+  if (isIOS) {
+    txt.textContent = 'Pulsa el botón compartir (□↑) en Safari y selecciona "Añadir a pantalla de inicio".';
+    banner.style.display = 'block';
+  } else if (isAndroid) {
+    txt.textContent = 'Pulsa el menú ⋮ en Chrome y selecciona "Añadir a pantalla de inicio".';
+    banner.style.display = 'block';
+  }
+}
+
+// ── Helpers de fecha ─────────────────────────────────────────
+function getMonday(off) {
+  const d = new Date(), day = d.getDay();
+  d.setDate(d.getDate() - (day === 0 ? 6 : day - 1) + off * 7);
+  d.setHours(0,0,0,0); return d;
+}
+function weekKey(off) { return getMonday(off).toISOString().slice(0,10); }
+function weekDates(off) {
+  const m = getMonday(off);
+  return Array.from({length:7}, (_,i) => { const d = new Date(m); d.setDate(d.getDate()+i); return d; });
+}
+function weekData(off) {
+  const k = weekKey(off);
+  if (!data[k]) data[k] = Array.from({length:7}, (_,i) => ({
+    type: 'off', startPlan: '', endPlan: '', endReal:'', note:''
+  }));
+  return data[k];
+}
+
+// ── Cálculos ─────────────────────────────────────────────────
+function toMins(t) { if (!t) return null; const [h,m]=t.split(':').map(Number); return h*60+m; }
+function calcH(s,e) {
+  const sm=toMins(s), em=toMins(e);
+  if (sm===null||em===null) return null;
+  let m=em-sm; if(m<0)m+=1440; return m/60;
+}
+function fmtH(h) {
+  if (h===null||h===undefined) return '–';
+  const sg=h<0?'-':'', ab=Math.abs(h), hh=Math.floor(ab), mm=Math.round((ab-hh)*60);
+  return sg+hh+'h'+(mm>0?mm+'m':'');
+}
+function fmtHTotal(h) {
+  if (h===null||h===undefined) return '–';
+  const sg=h<0?'-':'', ab=Math.abs(h), hh=Math.floor(ab), mm=Math.round((ab-hh)*60);
+  return sg+hh+'h'+(mm>0?mm+'m':'');
+}
+function fmtDate(d) { return d.toLocaleDateString('es-ES',{day:'numeric',month:'short'}); }
+
+function upd(i, field, val) {
+  const k=weekKey(offset); weekData(offset); data[k][i][field]=val; render();
+}
+
+// ── Render ───────────────────────────────────────────────────
+function render() {
+  const dates = weekDates(offset), wd = weekData(offset);
+  const m = getMonday(offset), s = new Date(m); s.setDate(s.getDate()+6);
+  const fmt = d => d.toLocaleDateString('es-ES',{day:'numeric',month:'short'});
+  document.getElementById('week-label').textContent = fmt(m)+' – '+fmt(s);
+
+  const grid = document.getElementById('day-grid');
+  grid.innerHTML = '';
+  let tp=0, tr=0;
+
+  dates.forEach((date,i) => {
+    const d=wd[i], isWE=i>=5;
+    const hp=calcH(d.startPlan,d.endPlan), hr=d.endReal?calcH(d.startPlan,d.endReal):null;
+    const diff=(hp!==null&&hr!==null)?(hr-hp):null;
+    if(hp!==null)tp+=hp; if(hr!==null)tr+=hr;
+
+    const dc=diff===null?'':diff>0.04?'diff-pos':diff<-0.04?'diff-neg':'diff-zero';
+    const dt=diff===null?'':(diff>0.04?'+':'')+fmtH(diff);
+    const rc=diff===null?'':diff>0.04?'pos':diff<-0.04?'neg':'';
+    const sel=v=>d.type===v?' selected':'';
+
+    const card=document.createElement('div');
+    card.className='day-card'+(isWE?' active':'');
+
+    const opts =
+      '<option value="m"'+sel('m')+'>☀️ mañana</option>'+
+      '<option value="t"'+sel('t')+'>🌤 tarde</option>'+
+      '<option value="off"'+sel('off')+'>💤 libre</option>';
+
+    if (d.type==='off') {
+      card.innerHTML =
+        '<div class="day-name">'+DAYS[i]+'</div>'+
+        '<div class="day-date">'+fmtDate(date)+'</div>'+
+        '<select class="type-select" onchange="upd('+i+',\'type\',this.value)">'+
+        '<option value="m">☀️ mañana</option>'+
+        '<option value="t">🌤 tarde</option>'+
+        '<option value="off" selected>💤 libre</option>'+
+        '</select>';
+    } else {
+      card.innerHTML =
+        '<div class="day-name">'+DAYS[i]+'</div>'+
+        '<div class="day-date">'+fmtDate(date)+'</div>'+
+        '<select class="type-select" onchange="upd('+i+',\'type\',this.value)">'+opts+'</select>'+
+        '<div class="block-label">Entrada</div>'+
+        '<input type="time" value="'+d.startPlan+'" onchange="upd('+i+',\'startPlan\',this.value)">'+
+        '<div class="divider"></div>'+
+        '<div class="block-label">Salida</div>'+
+        '<div class="time-row">'+
+          '<div class="time-col"><div class="time-col-label">teórica</div>'+
+          '<input type="time" value="'+d.endPlan+'" onchange="upd('+i+',\'endPlan\',this.value)"></div>'+
+          '<div class="time-col"><div class="time-col-label">real</div>'+
+          '<input type="time" value="'+(d.endReal||'')+'" onchange="upd('+i+',\'endReal\',this.value)"></div>'+
+          (diff!==null?'<span class="diff-badge '+dc+'">'+dt+'</span>':'')+
+        '</div>'+
+        '<div class="hours-row">'+
+          '<div class="hours-chip"><div class="chip-label">teóricas</div><div class="chip-val">'+(hp!==null?fmtH(hp):'–')+'</div></div>'+
+          '<div class="hours-chip"><div class="chip-label">reales</div><div class="chip-val '+rc+'">'+(hr!==null?fmtH(hr):'–')+'</div></div>'+
+        '</div>'+
+        '<textarea rows="1" placeholder="nota..." onchange="upd('+i+',\'note\',this.value)">'+(d.note||'')+'</textarea>';
+    }
+    grid.appendChild(card);
+  });
+
+  const dd=tr-tp, dc2=dd>0.04?'pos':dd<-0.04?'neg':'', ds=dd>0.04?'+':'';
+  const hasReal = wd.some(d => d.endReal && d.endReal !== '');
+  document.getElementById('total-bar').innerHTML=
+    '<div class="total-item"><div class="total-label">horas teóricas</div><div class="total-val">'+fmtHTotal(tp)+'</div></div>'+
+    '<div class="total-item"><div class="total-label">horas reales</div><div class="total-val">'+(hasReal?fmtHTotal(tr):'–')+'</div></div>'+
+    '<div class="total-item"><div class="total-label">diferencia</div><div class="total-val '+dc2+'">'+(hasReal?ds+fmtHTotal(dd):'–')+'</div></div>';
+}
+
+function changeWeek(d) { offset+=d; render(); }
+
+// ── Guardar ──────────────────────────────────────────────────
+function saveWeek() {
+  try { localStorage.setItem('telepizza_v3', JSON.stringify(data)); } catch(e) {}
+  const m=document.getElementById('saved-msg');
+  m.style.opacity='1'; setTimeout(()=>m.style.opacity='0', 2200);
+}
+
+// ── Exportar / Importar JSON ─────────────────────────────────
+function exportJSON() {
+  saveWeek();
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='turnos_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+}
+
+function importJSON(e) {
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev => {
+    try {
+      data=JSON.parse(ev.target.result);
+      saveWeek(); render();
+      alert('✅ Datos importados correctamente.');
+    } catch(err) { alert('❌ Archivo no válido.'); }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+// ── Exportar mes a CSV ───────────────────────────────────────
+function populateMonths() {
+  const sel=document.getElementById('export-month');
+  sel.innerHTML='';
+  // Todos los meses de 2026, de enero a diciembre
+  for(let mo=0;mo<12;mo++){
+    const val='2026-'+String(mo+1).padStart(2,'0');
+    const opt=document.createElement('option');
+    opt.value=val; opt.textContent=MONTHS[mo]+' 2026';
+    // Seleccionar el mes actual por defecto
+    if(mo===new Date().getMonth()) opt.selected=true;
+    sel.appendChild(opt);
+  }
+}
+
+function exportCSV() {
+  const mv=document.getElementById('export-month').value;
+  const [yr,mo]=mv.split('-').map(Number);
+  const rows=[['Fecha','Día','Turno','Entrada','Salida teórica','Salida real','Horas teóricas','Horas reales','Diferencia (h)','Nota']];
+
+  Object.keys(data).sort().forEach(k => {
+    const ws=new Date(k+'T00:00:00');
+    Array.from({length:7},(_,i)=>{ const d=new Date(ws); d.setDate(d.getDate()+i); return d; })
+    .forEach((date,i) => {
+      if(date.getFullYear()===yr && date.getMonth()+1===mo){
+        const d=data[k][i];
+        const hp=calcH(d.startPlan,d.endPlan), hr=d.endReal?calcH(d.startPlan,d.endReal):null;
+        const diff=(hp!==null&&hr!==null)?(hr-hp):null;
+        rows.push([
+          date.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'}),
+          DAYNAMES_ES[date.getDay()],
+          d.type==='off'?'libre':d.type==='m'?'mañana':d.type==='t'?'tarde':'noche',
+          d.startPlan||'', d.endPlan||'', d.endReal||'',
+          hp!==null?hp.toFixed(2):'',
+          hr!==null?hr.toFixed(2):'',
+          diff!==null?diff.toFixed(2):'',
+          d.note||''
+        ]);
+      }
+    });
+  });
+
+  let sp=0, sr=0;
+  rows.slice(1).forEach(r=>{ if(r[6])sp+=parseFloat(r[6]); if(r[7])sr+=parseFloat(r[7]); });
+  rows.push([]);
+  rows.push(['TOTAL','','','','','',sp.toFixed(2),sr.toFixed(2),(sr-sp).toFixed(2),'']);
+
+  const BOM='\uFEFF';
+  const csv=BOM+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='turnos_'+MONTHS[mo-1].toLowerCase()+'_'+yr+'.csv';
+  a.click();
+}
+
+// ── Init ─────────────────────────────────────────────────────
+try { const s=localStorage.getItem('telepizza_v3'); if(s) data=JSON.parse(s); } catch(e) {}
+showInstallBanner();
+populateMonths();
+render();
+</script>
+</body>
+</html>
